@@ -6,9 +6,11 @@ authors = [
     {name = "Indu Bedi",email = "indubedi1402@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.12,<3.14"
 dependencies = [
-    "pillow (>=12.3.0,<13.0.0)"
+    "pillow (>=12.3.0,<13.0.0)",
+    "paddlepaddle (==3.3.1)",
+    "paddleocr (==3.7.0)"
 ]
 
 
