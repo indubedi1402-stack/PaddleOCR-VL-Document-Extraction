@@ -57,7 +57,7 @@ jobs:
         run: poetry install --no-interaction --with dev
 
       - name: Run tests
-        run: poetry run pytest
+        run: poetry run pytest tests/
 
       - name: Upload coverage report
         if: always() && matrix.python-version == '3.13'
