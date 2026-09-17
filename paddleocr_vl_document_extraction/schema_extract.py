@@ -2,6 +2,8 @@ import json
 import re
 from pathlib import Path
 
+from paddleocr_vl_document_extraction.patterns import PATTERNS
+
 markdown_file = Path("output/invoice.md")
 schema_file = Path("configs/extraction_schema.json")
 output_file = Path("output/structured_output.json")
@@ -11,16 +13,8 @@ schema = json.loads(schema_file.read_text(encoding="utf-8"))
 
 result = {}
 
-patterns = {
-    "invoice_number": r"Invoice Number:\s*(.+)",
-    "date": r"Date:\s*(.+)",
-    "vendor": r"Vendor:\s*(.+)",
-    "customer": r"Customer:\s*(.+)",
-    "total_amount": r"Total Amount:\s*([\d,]+)"
-}
-
 for field, field_type in schema.items():
-    pattern = patterns.get(field)
+    pattern = PATTERNS.get(field)
 
     if pattern:
         match = re.search(pattern, text, re.IGNORECASE)
@@ -39,7 +33,7 @@ for field, field_type in schema.items():
 
 output_file.write_text(
     json.dumps(result, indent=2),
-    encoding="utf-8"
+    encoding="utf-8",
 )
 
 print("Schema extraction completed!")
