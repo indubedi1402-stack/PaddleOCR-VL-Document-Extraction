@@ -2,69 +2,76 @@ import json
 import re
 from pathlib import Path
 
-OCR_JSON = Path("output/invoice_res.json")
-MARKDOWN = Path("output/invoice.md")
-SCHEMA = Path("configs/extraction_schema.json")
-FINAL = Path("output/final_result.json")
+from paddleocr_vl_document_extraction.patterns import PATTERNS
 
-# Load files
-data = json.loads(OCR_JSON.read_text(encoding="utf-8"))
-schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
-markdown = MARKDOWN.read_text(encoding="utf-8")
 
-# PaddleOCR result is inside "res"
-ocr = data["res"]
+def run_pipeline(data, markdown, schema):
+    ocr = data.get("res", data)
 
-texts = ocr["rec_texts"]
-boxes = ocr["dt_polys"]
+    texts = ocr.get("rec_texts", [])
+    boxes = ocr.get("dt_polys", [])
 
-patterns = {
-    "invoice_number": r"Invoice Number:\s*(.+)",
-    "date": r"Date:\s*(.+)",
-    "vendor": r"Vendor:\s*(.+)",
-    "customer": r"Customer:\s*(.+)",
-    "total_amount": r"Total Amount:\s*(.+)"
-}
+    result = {}
 
-result = {}
+    for field, field_type in schema.items():
+        pattern = PATTERNS.get(field)
 
-for field, field_type in schema.items():
+        if not pattern:
+            result[field] = None
+            continue
 
-    # Find value in Markdown
-    match = re.search(patterns[field], markdown, re.IGNORECASE)
+        match = re.search(pattern, markdown, re.IGNORECASE)
 
-    if not match:
-        result[field] = None
-        continue
+        if not match:
+            result[field] = None
+            continue
 
-    value = re.sub(r"\*\*", "", match.group(1)).strip()
+        value = re.sub(r"\*\*", "", match.group(1)).strip()
 
-    if field_type == "number":
-        value = float(re.sub(r"[^0-9.\-]", "", value))
+        if field_type == "number":
+            value = float(re.sub(r"[^0-9.\-]", "", value))
 
-    # Find matching OCR text for provenance
-    provenance = None
+        provenance = None
 
-    for i, text in enumerate(texts):
-        if re.search(patterns[field], text, re.IGNORECASE):
-            provenance = {
-                "page": 1,
-                "source_text": text,
-                "bbox": boxes[i],
-                "text_index": i
-            }
-            break
+        for i, text in enumerate(texts):
+            if re.search(pattern, text, re.IGNORECASE):
+                provenance = {
+                    "page": 1,
+                    "source_text": text,
+                    "bbox": boxes[i],
+                    "text_index": i,
+                }
+                break
 
-    result[field] = {
-        "value": value,
-        "provenance": provenance
-    }
+        result[field] = {
+            "value": value,
+            "provenance": provenance,
+        }
 
-# Save final result
-FINAL.write_text(
-    json.dumps(result, indent=2),
-    encoding="utf-8"
-)
+    return result
 
-print("Pipeline completed successfully!")
-print(json.dumps(result, indent=2))
+
+def main():
+    ocr_json = Path("output/invoice_res.json")
+    markdown_file = Path("output/invoice.md")
+    schema_file = Path("configs/extraction_schema.json")
+    final_file = Path("output/final_result.json")
+
+    data = json.loads(ocr_json.read_text(encoding="utf-8"))
+    markdown = markdown_file.read_text(encoding="utf-8")
+    schema = json.loads(schema_file.read_text(encoding="utf-8"))
+
+    result = run_pipeline(data, markdown, schema)
+
+    final_file.parent.mkdir(parents=True, exist_ok=True)
+    final_file.write_text(
+        json.dumps(result, indent=2),
+        encoding="utf-8",
+    )
+
+    print("Pipeline completed successfully!")
+    print(json.dumps(result, indent=2))
+
+
+if __name__ == "__main__":
+    main()

@@ -53,9 +53,9 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
+testpaths = ["tests"]
 # Move cache creation to .cache dir, enable doc test and generate coverage report.
 addopts = [
-    "--doctest-modules",
     "--cov=paddleocr_vl_document_extraction/",
     "-p no:cacheprovider",
 ]
