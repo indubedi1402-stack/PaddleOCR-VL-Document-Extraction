@@ -2,39 +2,50 @@ import json
 import re
 from pathlib import Path
 
-markdown_file = Path("output/invoice.md")
-output_file = Path("output/provenance_output.json")
 
-text = markdown_file.read_text(encoding="utf-8")
-
-patterns = {
+PATTERNS = {
     "invoice_number": r"Invoice Number:\s*(.+)",
     "date": r"Date:\s*(.+)",
     "vendor": r"Vendor:\s*(.+)",
     "customer": r"Customer:\s*(.+)",
-    "total_amount": r"Total Amount:\s*(.+)"
+    "total_amount": r"Total Amount:\s*(.+)",
 }
 
-result = {}
 
-for field, pattern in patterns.items():
-    match = re.search(pattern, text, re.IGNORECASE)
+def extract_provenance(text):
+    result = {}
 
-    if match:
-        value = match.group(1).strip()
+    for field, pattern in PATTERNS.items():
+        match = re.search(pattern, text, re.IGNORECASE)
 
-        result[field] = {
-            "value": value,
-            "provenance": {
-                "page": 1,
-                "source_text": match.group(0)
+        if match:
+            result[field] = {
+                "value": match.group(1).strip(),
+                "provenance": {
+                    "page": 1,
+                    "source_text": match.group(0),
+                },
             }
-        }
 
-output_file.write_text(
-    json.dumps(result, indent=2),
-    encoding="utf-8"
-)
+    return result
 
-print("Provenance extraction completed!")
-print(json.dumps(result, indent=2))
+
+def main():
+    markdown_file = Path("output/invoice.md")
+    output_file = Path("output/provenance_output.json")
+
+    text = markdown_file.read_text(encoding="utf-8")
+    result = extract_provenance(text)
+
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    output_file.write_text(
+        json.dumps(result, indent=2),
+        encoding="utf-8",
+    )
+
+    print("Provenance extraction completed!")
+    print(json.dumps(result, indent=2))
+
+
+if __name__ == "__main__":
+    main()
