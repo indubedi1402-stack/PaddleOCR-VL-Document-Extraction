@@ -1,3 +1,4 @@
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 .ipynb_checkpoints/
@@ -38,3 +39,5 @@ test_tipc/web/node_modules/
 
 .venv/
 .worktrees/
+.cache/
+samples/invoice.png
