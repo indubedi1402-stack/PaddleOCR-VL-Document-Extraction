@@ -1,3 +1,4 @@
+
 # PaddleOCR-VL Document Extraction POC
 
 ## Objective
@@ -412,4 +413,29 @@ This project is released under the [Apache 2.0 license](LICENSE).
       primaryClass={cs.CV},
       url={https://arxiv.org/abs/2606.03264}, 
 }
+```
+## Document Layout Visualization
+
+The project uses PaddleOCR's PPStructureV3 pipeline for document layout detection and visualization.
+
+Run the layout visualization with:
+
+```bash
+poetry run python layout_visualization.py
+```
+
+The generated visualization files are saved in:
+
+```text
+output/layout/
+```
+
+Important outputs include:
+
+- `invoice_layout_det_res.png` — detected document layout
+- `invoice_layout_order_res.png` — layout/order visualization
+- `invoice_region_det_res.png` — detected document regions
+- `invoice_overall_ocr_res.png` — OCR visualization
+- `invoice_preprocessed_img.png` — preprocessed input image
+- `invoice_res.json` — OCR/layout result data
 ```
